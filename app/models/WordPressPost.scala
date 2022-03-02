@@ -1,6 +1,7 @@
 package models
 
 import play.api.libs.json.JsValue
+
 import scala.collection.mutable
 
 class WordPressPost {
@@ -15,18 +16,21 @@ class WordPressPost {
 		var postWords: Array[String] = {
 			// retrieve post content
 			(post \ "excerpt" \ "rendered")
-			  .asOpt[String]
+			  .get
 			  .toString
-			  // remove html tags
-			  .replaceAll("<[^>]*>", "")
+			  // remove html tags, html entities and special characters
+			  .replaceAll(
+				  "<[^>]*>|(&.+;)|[!@#$%^&*„“;\")(\\[\\]]|(\\\\r\\\\n)+|\\\\r+|\\\\n+|\\\\t+",
+				  ""
+			  )
 			  // string to array
 			  .split("[ ,!.]+")
 			  // remove numerics
-			  .filter((e) => e.forall(Character.isLetter))
+			  .filter((e) => !e.forall(Character.isDigit))
 		}
 
 		postWords.foreach((word: String) => {
-			postWordCount(word) += 1
+			postWordCount(word.toLowerCase()) += 1
 		})
 
 		postWordCount
